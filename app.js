@@ -708,6 +708,33 @@ async function init() {
 
   // Export
   document.getElementById('exportBtn').addEventListener('click', exportCSV);
+
+  // ── Sidebar mobile toggle ──────────────────────────────────────────────────
+  const sidebar   = document.getElementById('sidebar');
+  const backdrop  = document.getElementById('sidebarBackdrop');
+  const toggleBtn = document.getElementById('sidebarToggle');
+
+  function openSidebar() {
+    sidebar.classList.add('open');
+    backdrop.classList.remove('hidden');
+    document.body.style.overflow = 'hidden';
+  }
+  function closeSidebar() {
+    sidebar.classList.remove('open');
+    backdrop.classList.add('hidden');
+    document.body.style.overflow = '';
+  }
+
+  toggleBtn.addEventListener('click', () => {
+    sidebar.classList.contains('open') ? closeSidebar() : openSidebar();
+  });
+  backdrop.addEventListener('click', closeSidebar);
+
+  // Close sidebar on filter interaction (mobile UX)
+  sidebar.querySelectorAll('.pays-btn, .fcheck, .avail-check, .score-btn')
+    .forEach(el => el.addEventListener('change', () => {
+      if (window.innerWidth < 1024) closeSidebar();
+    }));
 }
 
 document.addEventListener('DOMContentLoaded', init);
