@@ -807,7 +807,17 @@ async function init() {
   // Export
   document.getElementById('exportBtn').addEventListener('click', exportCSV);
 
-  // ── Toggle vue grille / liste ─────────────────────────────────────────────
+  // ── Toggle vue grille / liste (desktop uniquement) ────────────────────────
+  function enforceGridOnMobile() {
+    if (window.innerWidth < 640 && state.view === 'list') {
+      state.view = 'grid';
+      document.getElementById('viewGrid').classList.add('active');
+      document.getElementById('viewList').classList.remove('active');
+      renderGrid();
+    }
+  }
+  window.addEventListener('resize', enforceGridOnMobile);
+
   document.getElementById('viewGrid').addEventListener('click', () => {
     state.view = 'grid';
     document.getElementById('viewGrid').classList.add('active');
@@ -815,6 +825,7 @@ async function init() {
     renderGrid();
   });
   document.getElementById('viewList').addEventListener('click', () => {
+    if (window.innerWidth < 640) return; // désactivé sur mobile
     state.view = 'list';
     document.getElementById('viewList').classList.add('active');
     document.getElementById('viewGrid').classList.remove('active');

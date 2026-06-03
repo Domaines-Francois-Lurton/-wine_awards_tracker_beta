@@ -15,6 +15,8 @@
     bottom: 0;
     background: white;
     z-index: 2;
+    margin-top: auto;
+    padding-bottom: 0 !important;
   }
   #filterDomaine {
     max-height: 35vh;
@@ -296,9 +298,8 @@
   font-size: 0.85rem;
   font-weight: 700;
   color: #0f172a;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  white-space: normal;
+  word-break: break-word;
 }
 .list-vintage {
   font-size: 0.72rem;
