@@ -35,12 +35,13 @@ const state = {
   criticCols: [],
   filters: {
     search: '', score: 0,
-    pays: 'tous',           // 'tous' or exact pays normalized
+    pays: 'tous',
     couleur: new Set(),
     domaine: new Set(),
     avail: new Set(),
   },
   sort: 'score',
+  view: 'grid', // 'grid' | 'list'
   selected: new Set(),
   modalIdx: null,
 };
@@ -453,6 +454,65 @@ function renderCard(wine, originalIdx) {
     </div>`;
 }
 
+// ── List row rendering ────────────────────────────────────────────────────────
+function renderRow(wine, originalIdx) {
+  const colorClass = colorCssClass(wine['Couleur']);
+  const stock = isInStock(wine);
+  const isSelected = state.selected.has(originalIdx);
+  const pays = norm(wine['Pays']);
+  const code = COUNTRY_CODE[pays] || '';
+
+  const allScores = getNumericScores(wine).sort((a, b) => b.num - a.num);
+  const visible = allScores.slice(0, 4);
+  const extra = allScores.length - visible.length;
+
+  const colorDot = {
+    'color-rouge': '#c0392b',
+    'color-blanc': '#C9A84C',
+    'color-rose':  '#db2777',
+    'color-autre': '#94a3b8',
+  }[colorClass] || '#94a3b8';
+
+  const badgesHTML = visible.map(({ col, num }) => {
+    const abbrev = CRITIC_ABBREV[col] || col;
+    const display = Number.isInteger(num) ? num : num.toFixed(1);
+    return `<span class="score-badge ${num > 96 ? 'elite' : ''}">${abbrev} ${display}</span>`;
+  }).join('') + (extra > 0 ? `<span class="badge-extra">+${extra}</span>` : '');
+
+  return `
+    <div class="list-row ${isSelected ? 'selected' : ''}" data-idx="${originalIdx}">
+      <!-- Couleur dot -->
+      <span class="list-color-dot" style="background:${colorDot}"></span>
+
+      <!-- Nom + millésime -->
+      <div class="list-name-cell">
+        <span class="list-name">${wine['Nom du vin'] || ''}</span>
+        <span class="list-vintage">${wine['Millésime'] || '—'}</span>
+      </div>
+
+      <!-- Domaine + pays -->
+      <div class="list-domaine-cell">
+        <span class="list-domaine">${(wine['Domaine ou Marque'] || '').trim()}</span>
+        <span class="list-code">${code}</span>
+      </div>
+
+      <!-- Scores -->
+      <div class="list-badges">${badgesHTML || '<span class="no-score">—</span>'}</div>
+
+      <!-- Actions -->
+      <div class="list-actions">
+        <span class="list-stock ${stock ? 'en' : 'ep'}">${stock ? '● En stock' : '○ Épuisé'}</span>
+        <button class="card-copy-btn" data-idx="${originalIdx}" title="Copier les notes">
+          <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3"/>
+          </svg>
+        </button>
+        <input type="checkbox" class="card-checkbox" data-idx="${originalIdx}" ${isSelected ? 'checked' : ''} />
+      </div>
+    </div>`;
+}
+
 // ── Grid (with progressive rendering for performance) ─────────────────────────
 const PAGE_SIZE = 60;
 let currentPage = 1;
@@ -473,26 +533,36 @@ function renderGrid() {
   const grid = document.getElementById('wineGrid');
   const countEl = document.getElementById('resultCount');
 
-  countEl.textContent = `Tous les vins trouvés (${lastFiltered.length})`;
+  countEl.textContent = `${lastFiltered.length} vin${lastFiltered.length > 1 ? 's' : ''} trouvé${lastFiltered.length > 1 ? 's' : ''}`;
+
+  // Classes selon le mode
+  if (state.view === 'list') {
+    grid.className = 'px-4 sm:px-6 pb-8 flex flex-col';
+  } else {
+    grid.className = 'px-4 sm:px-6 pb-8 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3';
+  }
 
   if (!lastFiltered.length) {
     grid.innerHTML = '<div class="col-span-full text-sm text-slate-400 py-16 text-center">Aucun vin ne correspond aux filtres.</div>';
     return;
   }
 
+  const renderFn = state.view === 'list' ? renderRow : renderCard;
   const page = lastFiltered.slice(0, PAGE_SIZE);
-  grid.innerHTML = page.map(w => renderCard(w, state.wines.indexOf(w))).join('');
+  grid.innerHTML = page.map(w => renderFn(w, state.wines.indexOf(w))).join('');
+
   if (lastFiltered.length > PAGE_SIZE) {
     const sentinel = document.createElement('div');
     sentinel.id = 'loadMore';
     sentinel.className = 'col-span-full flex justify-center py-6';
-    sentinel.innerHTML = `<button onclick="loadMoreCards()" class="text-xs text-slate-500 border border-slate-200 hover:border-slate-400 px-5 py-2 rounded-full transition-colors">
+    sentinel.innerHTML = `<button onclick="loadMoreCards()" class="text-xs text-slate-500 border border-slate-200 hover:border-slate-400 bg-white px-5 py-2 rounded-full transition-colors">
       Voir plus (${lastFiltered.length - PAGE_SIZE} restants)
     </button>`;
     grid.appendChild(sentinel);
   }
-  bindCardEvents(grid.querySelectorAll('.wine-card'));
 
+  const selector = state.view === 'list' ? '.list-row' : '.wine-card';
+  bindCardEvents(grid.querySelectorAll(selector));
   bindCardListeners(grid);
 }
 
@@ -736,6 +806,20 @@ async function init() {
 
   // Export
   document.getElementById('exportBtn').addEventListener('click', exportCSV);
+
+  // ── Toggle vue grille / liste ─────────────────────────────────────────────
+  document.getElementById('viewGrid').addEventListener('click', () => {
+    state.view = 'grid';
+    document.getElementById('viewGrid').classList.add('active');
+    document.getElementById('viewList').classList.remove('active');
+    renderGrid();
+  });
+  document.getElementById('viewList').addEventListener('click', () => {
+    state.view = 'list';
+    document.getElementById('viewList').classList.add('active');
+    document.getElementById('viewGrid').classList.remove('active');
+    renderGrid();
+  });
 
   // ── Sidebar mobile toggle ──────────────────────────────────────────────────
   const sidebar   = document.getElementById('sidebar');

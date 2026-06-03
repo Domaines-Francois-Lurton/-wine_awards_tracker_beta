@@ -248,6 +248,110 @@
 }
 .card-copy-btn:hover { background: #0f172a; color: white; border-color: #0f172a; }
 
+/* ── Toggle vue ── */
+.view-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #94a3b8;
+  background: white;
+  cursor: pointer;
+  border: none;
+  transition: color 0.1s, background 0.1s;
+}
+.view-btn:hover { color: #475569; }
+.view-btn.active { background: #0f172a; color: white; }
+
+/* ── Mode Liste ── */
+.list-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: white;
+  border-bottom: 1px solid #f1f3f5;
+  padding: 9px 14px;
+  cursor: pointer;
+  transition: background 0.1s;
+}
+.list-row:first-child { border-top: 1px solid #f1f3f5; border-radius: 10px 10px 0 0; }
+.list-row:last-child  { border-radius: 0 0 10px 10px; }
+.list-row:hover { background: #fafafa; }
+.list-row.selected { background: #f8fafc; outline: 2px solid #0f172a; outline-offset: -2px; }
+
+.list-color-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.list-name-cell {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  min-width: 180px;
+  max-width: 220px;
+  flex-shrink: 0;
+}
+.list-name {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #0f172a;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.list-vintage {
+  font-size: 0.72rem;
+  color: #4a5568;
+  font-weight: 500;
+  flex-shrink: 0;
+}
+.list-domaine-cell {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  min-width: 160px;
+  max-width: 200px;
+  flex-shrink: 0;
+}
+.list-domaine {
+  font-size: 0.7rem;
+  color: #5a6a7e;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.list-code {
+  font-size: 0.6rem;
+  font-weight: 700;
+  color: #94a3b8;
+  flex-shrink: 0;
+}
+.list-badges {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 3px;
+  flex: 1;
+  overflow: hidden;
+}
+.list-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+  margin-left: auto;
+}
+.list-stock {
+  font-size: 0.62rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.list-stock.en { color: #059669; }
+.list-stock.ep { color: #b0bac8; }
+
 /* ── Recent note cards ── */
 .recent-card {
   flex-shrink: 0;
