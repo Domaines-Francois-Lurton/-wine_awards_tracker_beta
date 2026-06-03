@@ -132,7 +132,7 @@
 .wine-card.selected { outline: 2px solid #0f172a; outline-offset: -2px; }
 
 .wine-card.color-rouge { border-left-color: #c0392b; }
-.wine-card.color-blanc { border-left-color: #FAF8C5; }
+.wine-card.color-blanc { border-left-color: #C9A84C; }
 .wine-card.color-rose  { border-left-color: #db2777; }
 .wine-card.color-autre { border-left-color: #94a3b8; }
 
@@ -257,7 +257,7 @@
 }
 .recent-card:hover { box-shadow: 0 4px 12px rgba(15,23,42,0.07); }
 .recent-card.color-rouge { border-left-color: #c0392b; }
-.recent-card.color-blanc { border-left-color: #FAF8C5; }
+.recent-card.color-blanc { border-left-color: #C9A84C; }
 .recent-card.color-rose  { border-left-color: #db2777; }
 .recent-card.color-autre { border-left-color: #94a3b8; }
 .recent-card .big-score { font-size: 1.75rem; font-weight: 800; line-height: 1; color: #0f172a; }
@@ -265,7 +265,7 @@
 
 /* ── Modal ── */
 .modal-color-rouge { border-left-color: #c0392b !important; }
-.modal-color-blanc { border-left-color: #FAF8C5 !important; }
+.modal-color-blanc { border-left-color: #C9A84C !important; }
 .modal-color-rose  { border-left-color: #db2777 !important; }
 .modal-color-autre { border-left-color: #94a3b8 !important; }
 
