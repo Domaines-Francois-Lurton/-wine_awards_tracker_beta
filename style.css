@@ -258,6 +258,20 @@
 }
 .card-copy-btn:hover { background: #0f172a; color: white; border-color: #0f172a; }
 
+/* ── Toggle langue ── */
+.lang-btn {
+  color: #94a3b8;
+  background: white;
+  border: none;
+  cursor: pointer;
+  font-size: 0.68rem;
+  font-weight: 700;
+  transition: color 0.1s, background 0.1s;
+  letter-spacing: 0.05em;
+}
+.lang-btn:hover { color: #475569; }
+.lang-btn.lang-active { background: #0f172a; color: white; }
+
 /* ── Toggle vue ── */
 .view-btn {
   display: flex;

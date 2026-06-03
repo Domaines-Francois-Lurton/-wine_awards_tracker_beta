@@ -24,6 +24,79 @@ const CRITIC_ABBREV = {
 const COUNTRY_CODE = { 'france': 'FR', 'argentine': 'AR', 'espagne': 'ES', 'chili': 'CL' };
 const COUNTRY_FLAG = { 'france': '🇫🇷', 'argentine': '🇦🇷', 'espagne': '🇪🇸', 'chili': '🇨🇱' };
 
+// ── Translations ──────────────────────────────────────────────────────────────
+const T = {
+  fr: {
+    searchPlaceholder: 'Rechercher un vin, domaine, critique, note…',
+    exportBtn: 'Export CSV',
+    pays: 'Pays',
+    disponibilite: 'Disponibilité',
+    couleur: 'Couleur',
+    domaine: 'Domaine',
+    scoreMin: 'Score minimum',
+    tous: 'Tous',
+    enStock: 'En stock',
+    epuise: 'Épuisé',
+    dernieresNotes: 'Dernières notes reçues',
+    vinsSelectionnes: n => `${n} vin${n > 1 ? 's' : ''} sélectionné${n > 1 ? 's' : ''} pour l'envoi`,
+    copier: 'Copier',
+    copierNotes: 'Copier les notes',
+    trierPar: 'Trier par',
+    meilleurScore: 'Meilleur score',
+    nomAZ: 'Nom A–Z',
+    domaineAZ: 'Domaine A–Z',
+    millesime: 'Millésime ↓',
+    vinsTotal: n => `${n} vin${n > 1 ? 's' : ''} trouvé${n > 1 ? 's' : ''}`,
+    chargement: 'Chargement…',
+    aucunVin: 'Aucun vin ne correspond aux filtres.',
+    voirPlus: n => `Voir plus (${n} restants)`,
+    aucuneNote: 'Aucune note',
+    notesCritiques: 'Notes des critiques',
+    copie: 'Copié dans le presse-papiers',
+    vignettes: 'Vignettes',
+    liste: 'Liste',
+    countries: { france: 'France', argentine: 'Argentine', espagne: 'Espagne', chili: 'Chili' },
+    colors: { rouge: 'Rouge', blanc: 'Blanc', 'rosé': 'Rosé', rose: 'Rosé', autre: 'Autre' },
+  },
+  en: {
+    searchPlaceholder: 'Search wine, estate, critic, score…',
+    exportBtn: 'Export CSV',
+    pays: 'Country',
+    disponibilite: 'Availability',
+    couleur: 'Colour',
+    domaine: 'Estate',
+    scoreMin: 'Min. score',
+    tous: 'All',
+    enStock: 'In stock',
+    epuise: 'Out of stock',
+    dernieresNotes: 'Latest scores',
+    vinsSelectionnes: n => `${n} wine${n > 1 ? 's' : ''} selected`,
+    copier: 'Copy',
+    copierNotes: 'Copy scores',
+    trierPar: 'Sort by',
+    meilleurScore: 'Best score',
+    nomAZ: 'Name A–Z',
+    domaineAZ: 'Estate A–Z',
+    millesime: 'Vintage ↓',
+    vinsTotal: n => `${n} wine${n > 1 ? 's' : ''} found`,
+    chargement: 'Loading…',
+    aucunVin: 'No wines match the filters.',
+    voirPlus: n => `Load more (${n} remaining)`,
+    aucuneNote: 'No score',
+    notesCritiques: 'Critics\' scores',
+    copie: 'Copied to clipboard',
+    vignettes: 'Grid',
+    liste: 'List',
+    countries: { france: 'France', argentine: 'Argentina', espagne: 'Spain', chili: 'Chile' },
+    colors: { rouge: 'Red', blanc: 'White', 'rosé': 'Rosé', rose: 'Rosé', autre: 'Other' },
+  }
+};
+
+function t(key, ...args) {
+  const val = T[state.lang][key];
+  return typeof val === 'function' ? val(...args) : (val ?? key);
+}
+
 const META_COLS = new Set([
   'Pays', 'Domaine ou Marque', 'Couleur', 'Nom du vin',
   'Millésime', 'Available', 'Récap rapide pour email', 'date_ajout',
@@ -33,6 +106,7 @@ const META_COLS = new Set([
 const state = {
   wines: [],
   criticCols: [],
+  lang: localStorage.getItem('wt-lang') || (navigator.language.startsWith('fr') ? 'fr' : 'en'),
   filters: {
     search: '', score: 0,
     pays: 'tous',
@@ -255,11 +329,11 @@ function buildAvailFilter(wines) {
   const epuise = wines.length - inStock;
   el.innerHTML = `
     <label class="filter-check">
-      <span class="lhs"><span class="dot-stock"></span><input type="checkbox" class="avail-check" value="stock"/> En stock</span>
+      <span class="lhs"><span class="dot-stock"></span><input type="checkbox" class="avail-check" value="stock"/> ${t('enStock')}</span>
       <span class="count">${inStock}</span>
     </label>
     <label class="filter-check">
-      <span class="lhs"><span class="dot-epuise"></span><input type="checkbox" class="avail-check" value="epuise"/> Épuisé</span>
+      <span class="lhs"><span class="dot-epuise"></span><input type="checkbox" class="avail-check" value="epuise"/> ${t('epuise')}</span>
       <span class="count">${epuise}</span>
     </label>`;
   el.querySelectorAll('.avail-check').forEach(cb => {
@@ -299,7 +373,7 @@ function renderRecentNotes(wines) {
     .slice(0, 5);
 
   if (!dated.length) {
-    el.innerHTML = '<div class="text-xs text-slate-400 italic py-2">Aucune note récente renseignée.</div>';
+    el.innerHTML = '<div class="text-xs text-slate-400 italic py-2">—</div>';
     return;
   }
 
@@ -418,7 +492,7 @@ function renderCard(wine, originalIdx) {
         const display = Number.isInteger(num) ? num : num.toFixed(1);
         return `<span class="score-badge ${num > 96 ? 'elite' : ''}">${abbrev} ${display}</span>`;
       }).join('') + (extra > 0 ? `<span class="badge-extra">+${extra}</span>` : '')
-    : '<span class="no-score">Aucune note</span>';
+    : `<span class="no-score">${t('aucuneNote')}</span>`;
 
   return `
     <div class="wine-card ${colorClass} ${isSelected ? 'selected' : ''}" data-idx="${originalIdx}">
@@ -442,9 +516,9 @@ function renderCard(wine, originalIdx) {
       <div class="card-footer">
         <span class="stock-pill ${stock ? 'en' : 'ep'}">
           <span class="stock-dot" style="background:${stock ? '#10b981' : '#d1d5db'}"></span>
-          ${stock ? 'En stock' : 'Épuisé'}
+          ${stock ? t('enStock') : t('epuise')}
         </span>
-        <button class="card-copy-btn" data-idx="${originalIdx}" title="Copier les notes">
+        <button class="card-copy-btn" data-idx="${originalIdx}" title="${t('copierNotes')}">
           <svg width="13" height="13" viewBox="0 0 115.77 122.88" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" clip-rule="evenodd" d="M89.62,13.96v7.73h12.19v0.02c3.85,0.01,7.34,1.57,9.86,4.1c2.5,2.51,4.06,5.98,4.07,9.82h0.02v73.29h-0.02c-0.01,3.84-1.57,7.33-4.1,9.86c-2.51,2.5-5.98,4.06-9.82,4.07v0.02H40.1v-0.02c-3.84-0.01-7.34-1.57-9.86-4.1c-2.5-2.51-4.06-5.98-4.07-9.82h-0.02V92.51H13.96v-0.02c-3.84-0.01-7.34-1.57-9.86-4.1C1.6,85.88,0.04,82.41,0.03,78.57H0V13.96h0.02C0.03,10.11,1.6,6.62,4.12,4.1C6.63,1.6,10.1,0.04,13.94,0.03V0h61.72v0.02c3.85,0.01,7.34,1.57,9.86,4.1c2.5,2.51,4.06,5.98,4.07,9.82h0.02V13.96zM79.04,21.69v-7.73h0.02c0-0.91-0.39-1.75-1.01-2.37c-0.61-0.61-1.46-1-2.37-1v0.02H13.96v-0.02c-0.91,0-1.75,0.39-2.37,1.01c-0.61,0.61-1,1.46-1,2.37h0.02v64.62h-0.02c0,0.91,0.39,1.75,1.01,2.37c0.61,0.61,1.46,1,2.37,1v-0.02h12.19V35.65h0.02c0.01-3.85,1.58-7.34,4.1-9.86c2.51-2.5,5.98-4.06,9.82-4.07v-0.02H79.04zM105.18,108.92V35.65h0.02c0-0.91-0.39-1.75-1.01-2.37c-0.61-0.61-1.46-1-2.37-1v0.02H40.1v-0.02c-0.91,0-1.75,0.39-2.37,1.01c-0.61,0.61-1,1.46-1,2.37h0.02v73.29h-0.02c0,0.91,0.39,1.75,1.01,2.37c0.61,0.61,1.46,1,2.37,1v-0.02h61.72v0.02c0.91,0,1.75-0.39,2.37-1.01c0.61-0.61,1-1.46,1-2.37h-0.02z"/></svg>
         </button>
       </div>
@@ -498,8 +572,8 @@ function renderRow(wine, originalIdx) {
 
       <!-- Actions -->
       <div class="list-actions">
-        <span class="list-stock ${stock ? 'en' : 'ep'}">${stock ? '● En stock' : '○ Épuisé'}</span>
-        <button class="card-copy-btn" data-idx="${originalIdx}" title="Copier les notes">
+        <span class="list-stock ${stock ? 'en' : 'ep'}">${stock ? '● ' + t('enStock') : '○ ' + t('epuise')}</span>
+        <button class="card-copy-btn" data-idx="${originalIdx}" title="${t('copierNotes')}">
           <svg width="13" height="13" viewBox="0 0 115.77 122.88" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" clip-rule="evenodd" d="M89.62,13.96v7.73h12.19v0.02c3.85,0.01,7.34,1.57,9.86,4.1c2.5,2.51,4.06,5.98,4.07,9.82h0.02v73.29h-0.02c-0.01,3.84-1.57,7.33-4.1,9.86c-2.51,2.5-5.98,4.06-9.82,4.07v0.02H40.1v-0.02c-3.84-0.01-7.34-1.57-9.86-4.1c-2.5-2.51-4.06-5.98-4.07-9.82h-0.02V92.51H13.96v-0.02c-3.84-0.01-7.34-1.57-9.86-4.1C1.6,85.88,0.04,82.41,0.03,78.57H0V13.96h0.02C0.03,10.11,1.6,6.62,4.12,4.1C6.63,1.6,10.1,0.04,13.94,0.03V0h61.72v0.02c3.85,0.01,7.34,1.57,9.86,4.1c2.5,2.51,4.06,5.98,4.07,9.82h0.02V13.96zM79.04,21.69v-7.73h0.02c0-0.91-0.39-1.75-1.01-2.37c-0.61-0.61-1.46-1-2.37-1v0.02H13.96v-0.02c-0.91,0-1.75,0.39-2.37,1.01c-0.61,0.61-1,1.46-1,2.37h0.02v64.62h-0.02c0,0.91,0.39,1.75,1.01,2.37c0.61,0.61,1.46,1,2.37,1v-0.02h12.19V35.65h0.02c0.01-3.85,1.58-7.34,4.1-9.86c2.51-2.5,5.98-4.06,9.82-4.07v-0.02H79.04zM105.18,108.92V35.65h0.02c0-0.91-0.39-1.75-1.01-2.37c-0.61-0.61-1.46-1-2.37-1v0.02H40.1v-0.02c-0.91,0-1.75,0.39-2.37,1.01c-0.61,0.61-1,1.46-1,2.37h0.02v73.29h-0.02c0,0.91,0.39,1.75,1.01,2.37c0.61,0.61,1.46,1,2.37,1v-0.02h61.72v0.02c0.91,0,1.75-0.39,2.37-1.01c0.61-0.61,1-1.46,1-2.37h-0.02z"/></svg>
         </button>
         <input type="checkbox" class="card-checkbox" data-idx="${originalIdx}" ${isSelected ? 'checked' : ''} />
@@ -527,7 +601,7 @@ function renderGrid() {
   const grid = document.getElementById('wineGrid');
   const countEl = document.getElementById('resultCount');
 
-  countEl.textContent = `${lastFiltered.length} vin${lastFiltered.length > 1 ? 's' : ''} trouvé${lastFiltered.length > 1 ? 's' : ''}`;
+  countEl.textContent = t('vinsTotal', lastFiltered.length);
 
   // Classes selon le mode
   if (state.view === 'list') {
@@ -537,7 +611,7 @@ function renderGrid() {
   }
 
   if (!lastFiltered.length) {
-    grid.innerHTML = '<div class="col-span-full text-sm text-slate-400 py-16 text-center">Aucun vin ne correspond aux filtres.</div>';
+    grid.innerHTML = `<div class="col-span-full text-sm text-slate-400 py-16 text-center">${t('aucunVin')}</div>`;
     return;
   }
 
@@ -550,7 +624,7 @@ function renderGrid() {
     sentinel.id = 'loadMore';
     sentinel.className = 'col-span-full flex justify-center py-6';
     sentinel.innerHTML = `<button onclick="loadMoreCards()" class="text-xs text-slate-500 border border-slate-200 hover:border-slate-400 bg-white px-5 py-2 rounded-full transition-colors">
-      Voir plus (${lastFiltered.length - PAGE_SIZE} restants)
+      ${t('voirPlus', lastFiltered.length - PAGE_SIZE)}
     </button>`;
     grid.appendChild(sentinel);
   }
@@ -609,7 +683,7 @@ function loadMoreCards() {
       newSentinel.id = 'loadMore';
       newSentinel.className = 'col-span-full flex justify-center py-6';
       newSentinel.innerHTML = `<button onclick="loadMoreCards()" class="text-xs text-slate-500 border border-slate-200 hover:border-slate-400 px-5 py-2 rounded-full transition-colors">
-        Voir plus (${lastFiltered.length - end} restants)
+        ${t('voirPlus', lastFiltered.length - end)}
       </button>`;
       grid.appendChild(frag);
       grid.appendChild(newSentinel);
@@ -627,7 +701,7 @@ function updateMultiBar() {
   const n = state.selected.size;
   if (n > 0) {
     document.getElementById('multiCount').textContent =
-      `${n} vin${n > 1 ? 's' : ''} sélectionné${n > 1 ? 's' : ''} pour l'envoi`;
+      t('vinsSelectionnes', n);
     bar.classList.remove('hidden');
   } else {
     bar.classList.add('hidden');
@@ -663,7 +737,7 @@ function openModal(idx) {
   });
 
   document.getElementById('modalScores').innerHTML = scores.length
-    ? `<div class="text-[10px] font-bold tracking-widest uppercase text-slate-400 mb-2">Notes des critiques</div>
+    ? `<div class="text-[10px] font-bold tracking-widest uppercase text-slate-400 mb-2">${t('notesCritiques')}</div>
        <div>${scores.map(({ col, val }) => {
          const abbrev = CRITIC_ABBREV[col] || col;
          const num = parseFloat(val);
@@ -673,15 +747,15 @@ function openModal(idx) {
            <span class="modal-score-val ${elite ? 'elite' : ''}">${val}</span>
          </div>`;
        }).join('')}</div>`
-    : '<div class="text-sm text-slate-400 italic">Aucune note renseignée.</div>';
+    : `<div class="text-sm text-slate-400 italic">${t('aucuneNote')}.</div>`;
 
   // Récap email masqué
   document.getElementById('modalRecap').innerHTML = '';
 
   // Stock
   document.getElementById('modalStock').innerHTML = stock
-    ? '<span class="text-xs font-semibold text-emerald-600">● En stock</span>'
-    : '<span class="text-xs font-semibold text-slate-400">○ Épuisé</span>';
+    ? `<span class="text-xs font-semibold text-emerald-600">● ${t('enStock')}</span>`
+    : `<span class="text-xs font-semibold text-slate-400">○ ${t('epuise')}</span>`;
 
   // Copy button
   document.getElementById('modalCopyBtn').onclick = () => {
@@ -800,6 +874,11 @@ async function init() {
   // Export
   document.getElementById('exportBtn').addEventListener('click', exportCSV);
 
+  // ── Lang toggle ───────────────────────────────────────────────────────────
+  document.getElementById('langFr')?.addEventListener('click', () => setLang('fr'));
+  document.getElementById('langEn')?.addEventListener('click', () => setLang('en'));
+  applyLang();
+
   // ── Toggle vue grille / liste (desktop uniquement) ────────────────────────
   function enforceGridOnMobile() {
     if (window.innerWidth < 640 && state.view === 'list') {
@@ -851,6 +930,57 @@ async function init() {
     .forEach(el => el.addEventListener('change', () => {
       if (window.innerWidth < 1024) closeSidebar();
     }));
+}
+
+// ── Language ──────────────────────────────────────────────────────────────────
+function applyLang() {
+  // Placeholder search
+  document.getElementById('searchInput').placeholder = t('searchPlaceholder');
+  // Toast text
+  document.querySelector('#toast span').textContent = t('copie');
+  // Sidebar section titles
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    el.textContent = t(el.dataset.i18n);
+  });
+  // Sort select options
+  const sel = document.getElementById('sortSelect');
+  if (sel) {
+    sel.options[0].text = t('meilleurScore');
+    sel.options[1].text = t('nomAZ');
+    sel.options[2].text = t('domaineAZ');
+    sel.options[3].text = t('millesime');
+  }
+  // Recent notes title
+  const rn = document.getElementById('recentNotesTitle');
+  if (rn) rn.textContent = t('dernieresNotes');
+  // Modal copy button
+  const mcb = document.getElementById('modalCopyBtn');
+  if (mcb) mcb.lastChild.textContent = ' ' + t('copierNotes');
+  // Multi copy button
+  const mc = document.getElementById('multiCopy');
+  if (mc) { const sp = mc.querySelector('span'); if (sp) sp.textContent = t('copier'); }
+  // Toggle buttons title
+  const vg = document.getElementById('viewGrid');
+  const vl = document.getElementById('viewList');
+  if (vg) vg.title = t('vignettes');
+  if (vl) vl.title = t('liste');
+  // Lang toggle UI
+  const btnFr = document.getElementById('langFr');
+  const btnEn = document.getElementById('langEn');
+  if (btnFr && btnEn) {
+    btnFr.classList.toggle('lang-active', state.lang === 'fr');
+    btnEn.classList.toggle('lang-active', state.lang === 'en');
+  }
+  // Re-render everything
+  initFilters(state.wines);
+  renderRecentNotes(state.wines);
+  renderGrid();
+}
+
+function setLang(lang) {
+  state.lang = lang;
+  localStorage.setItem('wt-lang', lang);
+  applyLang();
 }
 
 document.addEventListener('DOMContentLoaded', init);
