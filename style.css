@@ -26,10 +26,10 @@
 @media (max-width: 1023px) {
   #sidebar {
     position: fixed;
-    top: 56px;
+    top: 72px;
     left: 0;
     z-index: 40;
-    height: calc(100vh - 56px);
+    height: calc(100vh - 72px);
     overflow-y: auto;
     overflow-x: hidden;
     transform: translateX(-100%);

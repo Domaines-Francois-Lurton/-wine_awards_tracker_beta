@@ -10,36 +10,34 @@
 <body class="text-slate-900 min-h-screen" style="background-color:#F7F6F4">
 
   <!-- ── HEADER ── -->
-  <header class="bg-white border-b border-slate-100 sticky top-0 z-40 h-14">
+  <header class="bg-white border-b border-slate-100 sticky top-0 z-40" style="height:72px">
     <div class="h-full flex items-center">
 
-      <!-- Logo — même largeur que la sidebar (256px), centré -->
-      <div class="flex-shrink-0 w-16 lg:w-64 flex items-center justify-center border-r border-slate-100 h-full px-3 lg:px-5">
-        <!-- Hamburger mobile -->
+      <!-- Zone logo — largeur sidebar, padding vertical pour respiration -->
+      <div class="flex-shrink-0 w-16 lg:w-64 flex items-center justify-center border-r border-slate-100 h-full" style="padding: 12px 20px">
         <button id="sidebarToggle" class="lg:hidden p-1.5 rounded-md text-slate-500 hover:bg-slate-100 transition-colors">
           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
           </svg>
         </button>
-        <!-- SVG Logo desktop -->
-        <img src="logo.svg" alt="Domaines François Lurton" class="hidden lg:block h-12 w-auto object-contain" />
+        <img src="logo.svg" alt="Domaines François Lurton" class="hidden lg:block w-full h-auto object-contain" style="max-height:44px" />
       </div>
 
-      <!-- Search — prend tout l'espace central -->
-      <div class="flex-1 flex items-center justify-center px-4 sm:px-8">
-        <div class="relative w-full max-w-2xl">
+      <!-- Search — alignée à gauche, prend tout l'espace, très visible -->
+      <div class="flex-1 flex items-center px-5 sm:px-8">
+        <div class="relative w-full">
           <svg class="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-4.35-4.35M17 11A6 6 0 1 1 5 11a6 6 0 0 1 12 0z"/>
           </svg>
-          <input id="searchInput" type="text" placeholder="Vin, domaine, millésime, critique, note (ex: 98)…"
-            class="w-full border border-slate-200 rounded-xl pl-11 pr-5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-slate-900 bg-white placeholder-slate-400 transition shadow-sm" />
+          <input id="searchInput" type="text" placeholder="Rechercher un vin, domaine, critique, note…"
+            class="w-full border-2 border-slate-200 rounded-xl pl-11 pr-5 py-3 text-sm font-medium focus:outline-none focus:border-slate-900 bg-white placeholder-slate-400 transition-colors" />
         </div>
       </div>
 
       <!-- Export -->
-      <div class="flex-shrink-0 pr-4">
+      <div class="flex-shrink-0 pr-5">
         <button id="exportBtn"
-          class="flex items-center gap-1.5 text-xs text-slate-600 border border-slate-200 hover:border-slate-400 hover:text-slate-900 px-3 py-2 rounded-lg transition-colors whitespace-nowrap">
+          class="flex items-center gap-1.5 text-xs text-slate-500 border border-slate-200 hover:border-slate-400 hover:text-slate-900 px-3 py-2 rounded-lg transition-colors whitespace-nowrap">
           <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
           </svg>
@@ -53,11 +51,11 @@
   <div id="sidebarBackdrop" class="fixed inset-0 bg-black/40 z-30 hidden lg:hidden"></div>
 
   <!-- ── APP LAYOUT ── -->
-  <div class="flex h-[calc(100vh-56px)]">
+  <div class="flex h-[calc(100vh-72px)]">
 
     <!-- ── SIDEBAR ── -->
     <aside id="sidebar"
-      class="w-64 flex-shrink-0 bg-white border-r border-slate-100 flex flex-col overflow-hidden h-[calc(100vh-56px)]">
+      class="w-64 flex-shrink-0 bg-white border-r border-slate-100 flex flex-col overflow-hidden h-[calc(100vh-72px)]">
 
       <!-- Sections fixes -->
       <div class="px-4 pt-4 space-y-3 flex-shrink-0">
