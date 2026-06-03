@@ -2,7 +2,25 @@
 .scrollbar-hide::-webkit-scrollbar { display: none; }
 .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
 
-/* ── Sidebar responsive ── */
+/* ── Sidebar ── */
+
+/* Desktop : sidebar fixe en hauteur, Score toujours visible via sticky */
+@media (min-width: 1024px) {
+  #sidebar {
+    overflow-y: auto;
+    overflow-x: hidden;
+  }
+  .sidebar-score {
+    position: sticky;
+    bottom: 0;
+    background: white;
+    z-index: 2;
+  }
+  #filterDomaine {
+    max-height: 35vh;
+    overflow-y: auto;
+  }
+}
 
 /* Mobile/Tablette : sidebar en overlay avec scroll global */
 @media (max-width: 1023px) {
@@ -19,10 +37,8 @@
     box-shadow: 4px 0 24px rgba(15,23,42,0.15);
   }
   #sidebar.open { transform: translateX(0); }
+  #filterDomaine { max-height: none; }
 }
-
-/* filterDomaine : max-height injectée par JS sur desktop */
-#filterDomaine { overflow-y: auto; }
 
 /* ── Sidebar ── */
 .filter-section-title {
