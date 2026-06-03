@@ -680,6 +680,8 @@ async function init() {
   initFilters(state.wines);
   renderRecentNotes(state.wines);
   renderGrid();
+  // Ajuste la hauteur de la liste domaine après rendu
+  requestAnimationFrame(() => fitDomaineList());
 
   // Search
   document.getElementById('searchInput').addEventListener('input', e => {
@@ -746,5 +748,29 @@ async function init() {
       if (window.innerWidth < 1024) closeSidebar();
     }));
 }
+
+// ── Domaine list height (desktop only) ───────────────────────────────────────
+function fitDomaineList() {
+  if (window.innerWidth < 1024) return;
+  const sidebar   = document.getElementById('sidebar');
+  const domSection = document.querySelector('.sidebar-domaine-section');
+  const domList    = document.getElementById('filterDomaine');
+  const scoreSection = sidebar.querySelector('.border-t.border-slate-50');
+  if (!domSection || !domList || !scoreSection) return;
+
+  // Measure everything in sidebar except the domaine section itself
+  const sidebarH    = sidebar.clientHeight;
+  const scoreH      = scoreSection.offsetHeight;
+  const fixedDiv    = sidebar.querySelector('.px-5.pt-5');
+  const fixedH      = fixedDiv ? fixedDiv.offsetHeight : 0;
+  const domTitle    = domSection.querySelector('p');
+  const domTitleH   = domTitle ? domTitle.offsetHeight + 8 : 24; // +mt-2
+  const domMT       = parseInt(getComputedStyle(domSection).marginTop) || 0;
+
+  const available = sidebarH - fixedH - domMT - domTitleH - scoreH;
+  domList.style.maxHeight = Math.max(80, available) + 'px';
+}
+
+window.addEventListener('resize', fitDomaineList);
 
 document.addEventListener('DOMContentLoaded', init);
