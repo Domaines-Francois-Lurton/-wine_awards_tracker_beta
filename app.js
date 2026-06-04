@@ -420,15 +420,17 @@ function wineMatches(wine) {
       });
       if (!scoreMatch) return false;
     } else {
-      // Inclut les noms complets ET les abréviations des critiques ayant une note
+      // Chaque mot de la requête doit apparaître quelque part dans le hay
       const criticNames = state.criticCols
         .filter(c => wine[c])
         .flatMap(c => [c, CRITIC_ABBREV[c] || '']);
-      const hay = [
+      const hay = norm([
         wine['Nom du vin'], wine['Domaine ou Marque'], wine['Millésime'],
+        wine['Couleur'], wine['Pays'],
         ...criticNames
-      ].join(' ');
-      if (!norm(hay).includes(q)) return false;
+      ].join(' '));
+      const tokens = q.split(/\s+/).filter(Boolean);
+      if (!tokens.every(token => hay.includes(token))) return false;
     }
   }
 
