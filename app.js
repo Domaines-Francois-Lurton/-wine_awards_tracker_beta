@@ -370,7 +370,7 @@ function renderRecentNotes(wines) {
   const dated = wines
     .filter(w => w['date_ajout'] && w['date_ajout'].trim())
     .sort((a, b) => parseDate(b['date_ajout']) - parseDate(a['date_ajout']))
-    .slice(0, 5);
+    .slice(0, 15);
 
   if (!dated.length) {
     el.innerHTML = '<div class="text-xs text-slate-400 italic py-2">—</div>';
