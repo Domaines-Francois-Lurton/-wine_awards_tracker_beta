@@ -1,5 +1,110 @@
 'use strict';
 
+// ── Admin : toggle stock feature ──────────────────────────────────────────────
+let stockFeatureEnabled = true; // valeur provisoire, écrasée par config.json au démarrage
+
+function applyStockFeature() {
+  const section = document.getElementById('filterAvailSection');
+  if (section) section.style.display = stockFeatureEnabled ? '' : 'none';
+  // Reset avail filter when hidden to avoid locked state
+  if (!stockFeatureEnabled) {
+    state.filters.avail.clear();
+  }
+  renderGrid();
+}
+
+const GITHUB_REPO  = 'Domaines-Francois-Lurton/wine_awards_tracker';
+const GITHUB_BRANCH = 'main';
+const CONFIG_PATH   = 'config.json';
+
+async function publishConfigToGitHub(token, showStock) {
+  const apiBase = `https://api.github.com/repos/${GITHUB_REPO}/contents/${CONFIG_PATH}`;
+  const headers = {
+    'Authorization': `Bearer ${token}`,
+    'Accept': 'application/vnd.github+json',
+    'Content-Type': 'application/json',
+  };
+
+  // 1. Récupère le SHA actuel (absent si le fichier n'existe pas encore)
+  const getRes = await fetch(`${apiBase}?ref=${GITHUB_BRANCH}`, { headers });
+  if (!getRes.ok && getRes.status !== 404) {
+    throw new Error(`Erreur d'accès au repo (${getRes.status}) — vérifiez votre token.`);
+  }
+  const existing = getRes.ok ? await getRes.json() : null;
+  const sha = existing ? existing.sha : undefined;
+
+  // 2. Encode le nouveau contenu en base64
+  const content = btoa(JSON.stringify({ showStock }, null, 2) + '\n');
+
+  // 3. Crée ou met à jour le fichier
+  const body = { message: `admin: showStock=${showStock}`, content, branch: GITHUB_BRANCH };
+  if (sha) body.sha = sha;
+
+  const putRes = await fetch(apiBase, {
+    method: 'PUT',
+    headers,
+    body: JSON.stringify(body),
+  });
+  if (!putRes.ok) throw new Error(`Erreur lors de la publication (${putRes.status}).`);
+}
+
+function initAdminPanel() {
+  const panel    = document.getElementById('adminPanel');
+  const check    = document.getElementById('adminStockCheck');
+  const slider   = document.getElementById('adminStockSlider');
+  const knob     = document.getElementById('adminStockKnob');
+  const closeBtn = document.getElementById('adminClose');
+  const tokenInput = document.getElementById('adminToken');
+  const saveBtn  = document.getElementById('adminSave');
+  const status   = document.getElementById('adminStatus');
+
+  // Restaure le token sauvegardé
+  tokenInput.value = localStorage.getItem('wt-gh-token') || '';
+
+  function syncToggleUI() {
+    check.checked = stockFeatureEnabled;
+    slider.style.background = stockFeatureEnabled ? '#10b981' : '#334155';
+    knob.style.transform    = stockFeatureEnabled ? 'translateX(18px)' : 'translateX(0)';
+  }
+  syncToggleUI();
+
+  check.addEventListener('change', () => {
+    stockFeatureEnabled = check.checked;
+    syncToggleUI();
+    applyStockFeature();
+  });
+
+  saveBtn.addEventListener('click', async () => {
+    const token = tokenInput.value.trim();
+    if (!token) { status.textContent = 'Token manquant.'; status.style.color = '#f87171'; return; }
+
+    localStorage.setItem('wt-gh-token', token);
+    saveBtn.disabled = true;
+    status.style.color = '#94a3b8';
+    status.textContent = 'Publication en cours…';
+
+    try {
+      await publishConfigToGitHub(token, stockFeatureEnabled);
+      status.style.color = '#10b981';
+      status.textContent = 'Publié. Visible dans ~1 min.';
+    } catch (err) {
+      status.style.color = '#f87171';
+      status.textContent = err.message;
+    } finally {
+      saveBtn.disabled = false;
+    }
+  });
+
+  closeBtn.addEventListener('click', () => { panel.style.display = 'none'; });
+
+  document.addEventListener('keydown', e => {
+    if (e.ctrlKey && e.shiftKey && e.key === 'A') {
+      e.preventDefault();
+      panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
+    }
+  });
+}
+
 // ── Constants ─────────────────────────────────────────────────────────────────
 const CRITIC_ABBREV = {
   'Wine Spectator': 'WS', 'Wine Enthusiast': 'WE', 'Wine Advocate': 'WA',
@@ -521,10 +626,10 @@ function renderCard(wine, originalIdx) {
 
       <!-- Footer discret : stock + copier (toujours là, léger) -->
       <div class="card-footer">
-        <span class="stock-pill ${stock ? 'en' : 'ep'}">
+        ${stockFeatureEnabled ? `<span class="stock-pill ${stock ? 'en' : 'ep'}">
           <span class="stock-dot" style="background:${stock ? '#10b981' : '#d1d5db'}"></span>
           ${stock ? t('enStock') : t('epuise')}
-        </span>
+        </span>` : '<span></span>'}
         <button class="card-copy-btn" data-idx="${originalIdx}" title="${t('copierNotes')}">
           <svg width="13" height="13" viewBox="0 0 115.77 122.88" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" clip-rule="evenodd" d="M89.62,13.96v7.73h12.19v0.02c3.85,0.01,7.34,1.57,9.86,4.1c2.5,2.51,4.06,5.98,4.07,9.82h0.02v73.29h-0.02c-0.01,3.84-1.57,7.33-4.1,9.86c-2.51,2.5-5.98,4.06-9.82,4.07v0.02H40.1v-0.02c-3.84-0.01-7.34-1.57-9.86-4.1c-2.5-2.51-4.06-5.98-4.07-9.82h-0.02V92.51H13.96v-0.02c-3.84-0.01-7.34-1.57-9.86-4.1C1.6,85.88,0.04,82.41,0.03,78.57H0V13.96h0.02C0.03,10.11,1.6,6.62,4.12,4.1C6.63,1.6,10.1,0.04,13.94,0.03V0h61.72v0.02c3.85,0.01,7.34,1.57,9.86,4.1c2.5,2.51,4.06,5.98,4.07,9.82h0.02V13.96zM79.04,21.69v-7.73h0.02c0-0.91-0.39-1.75-1.01-2.37c-0.61-0.61-1.46-1-2.37-1v0.02H13.96v-0.02c-0.91,0-1.75,0.39-2.37,1.01c-0.61,0.61-1,1.46-1,2.37h0.02v64.62h-0.02c0,0.91,0.39,1.75,1.01,2.37c0.61,0.61,1.46,1,2.37,1v-0.02h12.19V35.65h0.02c0.01-3.85,1.58-7.34,4.1-9.86c2.51-2.5,5.98-4.06,9.82-4.07v-0.02H79.04zM105.18,108.92V35.65h0.02c0-0.91-0.39-1.75-1.01-2.37c-0.61-0.61-1.46-1-2.37-1v0.02H40.1v-0.02c-0.91,0-1.75,0.39-2.37,1.01c-0.61,0.61-1,1.46-1,2.37h0.02v73.29h-0.02c0,0.91,0.39,1.75,1.01,2.37c0.61,0.61,1.46,1,2.37,1v-0.02h61.72v0.02c0.91,0,1.75-0.39,2.37-1.01c0.61-0.61,1-1.46,1-2.37h-0.02z"/></svg>
         </button>
@@ -579,7 +684,7 @@ function renderRow(wine, originalIdx) {
 
       <!-- Actions -->
       <div class="list-actions">
-        <span class="list-stock ${stock ? 'en' : 'ep'}">${stock ? '● ' + t('enStock') : '○ ' + t('epuise')}</span>
+        ${stockFeatureEnabled ? `<span class="list-stock ${stock ? 'en' : 'ep'}">${stock ? '● ' + t('enStock') : '○ ' + t('epuise')}</span>` : ''}
         <button class="card-copy-btn" data-idx="${originalIdx}" title="${t('copierNotes')}">
           <svg width="13" height="13" viewBox="0 0 115.77 122.88" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" clip-rule="evenodd" d="M89.62,13.96v7.73h12.19v0.02c3.85,0.01,7.34,1.57,9.86,4.1c2.5,2.51,4.06,5.98,4.07,9.82h0.02v73.29h-0.02c-0.01,3.84-1.57,7.33-4.1,9.86c-2.51,2.5-5.98,4.06-9.82,4.07v0.02H40.1v-0.02c-3.84-0.01-7.34-1.57-9.86-4.1c-2.5-2.51-4.06-5.98-4.07-9.82h-0.02V92.51H13.96v-0.02c-3.84-0.01-7.34-1.57-9.86-4.1C1.6,85.88,0.04,82.41,0.03,78.57H0V13.96h0.02C0.03,10.11,1.6,6.62,4.12,4.1C6.63,1.6,10.1,0.04,13.94,0.03V0h61.72v0.02c3.85,0.01,7.34,1.57,9.86,4.1c2.5,2.51,4.06,5.98,4.07,9.82h0.02V13.96zM79.04,21.69v-7.73h0.02c0-0.91-0.39-1.75-1.01-2.37c-0.61-0.61-1.46-1-2.37-1v0.02H13.96v-0.02c-0.91,0-1.75,0.39-2.37,1.01c-0.61,0.61-1,1.46-1,2.37h0.02v64.62h-0.02c0,0.91,0.39,1.75,1.01,2.37c0.61,0.61,1.46,1,2.37,1v-0.02h12.19V35.65h0.02c0.01-3.85,1.58-7.34,4.1-9.86c2.51-2.5,5.98-4.06,9.82-4.07v-0.02H79.04zM105.18,108.92V35.65h0.02c0-0.91-0.39-1.75-1.01-2.37c-0.61-0.61-1.46-1-2.37-1v0.02H40.1v-0.02c-0.91,0-1.75,0.39-2.37,1.01c-0.61,0.61-1,1.46-1,2.37h0.02v73.29h-0.02c0,0.91,0.39,1.75,1.01,2.37c0.61,0.61,1.46,1,2.37,1v-0.02h61.72v0.02c0.91,0,1.75-0.39,2.37-1.01c0.61-0.61,1-1.46,1-2.37h-0.02z"/></svg>
         </button>
@@ -752,9 +857,11 @@ function openModal(idx) {
   document.getElementById('modalRecap').innerHTML = '';
 
   // Stock
-  document.getElementById('modalStock').innerHTML = stock
-    ? `<span class="text-xs font-semibold text-emerald-600">● ${t('enStock')}</span>`
-    : `<span class="text-xs font-semibold text-slate-400">○ ${t('epuise')}</span>`;
+  document.getElementById('modalStock').innerHTML = stockFeatureEnabled
+    ? (stock
+        ? `<span class="text-xs font-semibold text-emerald-600">● ${t('enStock')}</span>`
+        : `<span class="text-xs font-semibold text-slate-400">○ ${t('epuise')}</span>`)
+    : '';
 
   // Copy button
   document.getElementById('modalCopyBtn').onclick = () => {
@@ -813,6 +920,15 @@ function exportCSV() {
 
 // ── Init ──────────────────────────────────────────────────────────────────────
 async function init() {
+  // Charge config.json pour l'état global du stock (visible par tous)
+  try {
+    const cfg = await fetch('config.json');
+    if (cfg.ok) {
+      const json = await cfg.json();
+      if (typeof json.showStock === 'boolean') stockFeatureEnabled = json.showStock;
+    }
+  } catch { /* config.json absent ou invalide : on garde la valeur par défaut */ }
+
   let text;
   try {
     const res = await fetch('data.csv');
@@ -841,6 +957,8 @@ async function init() {
   initFilters(state.wines);
   renderRecentNotes(state.wines);
   renderGrid();
+  initAdminPanel();
+  applyStockFeature();
 
   // Search
   document.getElementById('searchInput').addEventListener('input', e => {
